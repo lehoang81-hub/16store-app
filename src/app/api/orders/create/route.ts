@@ -1,111 +1,89 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/service'
-import { getCurrentUser } from '@/lib/queries/current-user'
-
-// Tạo mã VietQR ref duy nhất: 16S + timestamp + random
-function generateVietQRRef(): string {
-  const ts = Date.now().toString().slice(-6)
-  const rand = Math.random().toString(36).slice(2, 5).toUpperCase()
-  return `16S${ts}${rand}`
-}
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/service';
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const authClient = await createClient();
+    const { data: { user: authUser } } = await authClient.auth.getUser();
+    if (!authUser) return NextResponse.json({ error: 'Chưa đăng nhập' }, { status: 401 });
+
+    const { lotId, sellerId, passportId } = await req.json();
+    if (!lotId || !sellerId) return NextResponse.json({ error: 'Thiếu thông tin' }, { status: 400 });
+
+    const supabase = createServiceClient();
+
+    // Lấy buyer profile
+    const { data: buyer } = await supabase
+      .from('users_view')
+      .select('id')
+      .eq('auth_id', authUser.id)
+      .single();
+    if (!buyer) return NextResponse.json({ error: 'Không tìm thấy hồ sơ' }, { status: 404 });
+
+    // Không cho seller tự mua
+    if (buyer.id === sellerId) {
+      return NextResponse.json({ error: 'Không thể mua vật phẩm của chính mình' }, { status: 400 });
     }
 
-    const { lot_id } = await req.json()
-    if (!lot_id) {
-      return NextResponse.json({ error: 'Missing lot_id' }, { status: 400 })
-    }
-
-    const supabase = createServiceClient()
-
-    // 1. Lấy thông tin lot
-    const { data: lot, error: lotError } = await supabase
+    // Lấy post để check status + giá
+    const { data: post } = await supabase
       .from('posts')
-      .select('id, lot_id, seller_id, asking_price_vnd, status')
-      .eq('lot_id', lot_id)
-      .single()
+      .select('id, lot_id, asking_price_vnd, status, seller_id')
+      .eq('lot_id', lotId)
+      .single();
 
-    if (lotError || !lot) {
-      return NextResponse.json({ error: 'Lot not found' }, { status: 404 })
+    if (!post) return NextResponse.json({ error: 'Không tìm thấy listing' }, { status: 404 });
+    if (post.status !== 'live') {
+      return NextResponse.json({ error: 'Vật phẩm không còn khả dụng' }, { status: 409 });
     }
 
-    if (lot.status !== 'live') {
-      return NextResponse.json({ error: 'Lot is not available' }, { status: 409 })
-    }
+    const depositVnd = Math.round(post.asking_price_vnd * 0.3);
 
-    if (lot.seller_id === user.id) {
-      return NextResponse.json({ error: 'Cannot buy your own lot' }, { status: 400 })
-    }
+    // Generate VietQR ref — format: 16S-{lotId}-{timestamp}
+    const vietqrRef = `16S${lotId.replace(/-/g, '').slice(0, 8).toUpperCase()}${Date.now().toString().slice(-6)}`;
 
-    // 2. Kiểm tra không có order reserved/paid/confirmed nào đang tồn tại
-    const { data: existing } = await supabase
-      .from('orders')
-      .select('id')
-      .eq('lot_id', lot_id)
-      .in('status', ['reserved', 'paid', 'confirmed'])
-      .maybeSingle()
-
-    if (existing) {
-      return NextResponse.json({ error: 'Lot is currently reserved' }, { status: 409 })
-    }
-
-    // 3. Lấy passport liên kết với lot này
-    const { data: passport } = await supabase
-      .from('shoe_passports')
-      .select('id')
-      .eq('current_post_id', lot.id)
-      .maybeSingle()
-
-    if (!passport) {
-      return NextResponse.json({ error: 'Passport not found for this lot' }, { status: 404 })
-    }
-
-    const vietqr_ref = generateVietQRRef()
-    const reserved_until = new Date(Date.now() + 30 * 60 * 1000).toISOString()
-
-    // 4. Tạo order
-    const { data: order, error: orderError } = await supabase
+    // Tạo order
+    const { data: order, error: orderErr } = await supabase
       .from('orders')
       .insert({
-        lot_id: lot_id,
-        buyer_id: user.id,
-        seller_id: lot.seller_id,
-        passport_id: passport.id,
-        status: 'reserved',
-        amount_vnd: lot.asking_price_vnd,
-        vietqr_ref,
-        reserved_until,
+        lot_id:        lotId,
+        buyer_id:      buyer.id,
+        seller_id:     sellerId,
+        passport_id:   passportId ?? null,
+        status:        'pending',
+        amount_vnd:    post.asking_price_vnd,
+        deposit_vnd:   depositVnd,
+        vietqr_ref:    vietqrRef,
+        reserved_until: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 phút
       })
-      .select()
-      .single()
+      .select('id')
+      .single();
 
-    if (orderError) {
-      return NextResponse.json({ error: orderError.message }, { status: 500 })
+    if (orderErr || !order) {
+      console.error('[orders/create]', orderErr);
+      return NextResponse.json({ error: 'Không thể tạo đơn hàng' }, { status: 500 });
     }
 
-    // 5. Ghi status log
+    // Log status
     await supabase.from('order_status_log').insert({
-      order_id: order.id,
-      from_status: 'pending',
-      to_status: 'reserved',
-      changed_by: user.id,
-      note: 'Order created by buyer',
-    })
+      order_id:   order.id,
+      old_status: null,
+      new_status: 'pending',
+      changed_by: buyer.id,
+      note:       'Buyer tạo đơn hàng',
+    });
 
-    // 6. Đổi status lot → reserved
+    // Update post status → reserved
     await supabase
       .from('posts')
       .update({ status: 'reserved' })
-      .eq('lot_id', lot_id)
+      .eq('lot_id', lotId);
 
-    return NextResponse.json({ order })
+    return NextResponse.json({ success: true, orderId: order.id, vietqrRef, depositVnd });
+
   } catch (err) {
-    console.error('[orders/create]', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[orders/create]', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }
