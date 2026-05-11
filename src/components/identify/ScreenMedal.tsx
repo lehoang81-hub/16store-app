@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CaptureData, ScanResult } from './IdentifyFlow';
+import { PosterCanvas } from '@/components/PosterCanvas';
 
 interface Props {
   result: ScanResult;
@@ -19,6 +20,8 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
     const diff = new Date(result.claimWindowExpiresAt).getTime() - Date.now();
     return Math.max(0, Math.floor(diff / 1000));
   });
+  const [posterUrl,    setPosterUrl]    = useState<string | null>(null);
+  const [posterSaving, setPosterSaving] = useState(false);
   const confettiRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
   const cardRef = useRef<HTMLDivElement>(null);
@@ -86,6 +89,25 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
     const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  };
+
+  // Auto-upload poster sau khi PosterCanvas render xong
+  const handlePosterReady = async (dataUrl: string) => {
+    if (!result.passportId || posterSaving) return;
+    setPosterSaving(true);
+    try {
+      const res = await fetch('/api/poster/generate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ passportId: result.passportId, dataUrl }),
+      });
+      const data = await res.json();
+      if (data.posterUrl) setPosterUrl(data.posterUrl);
+    } catch (err) {
+      console.error('[ScreenMedal] poster upload failed:', err);
+    } finally {
+      setPosterSaving(false);
+    }
   };
 
   return (
@@ -259,6 +281,47 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
           <span style={{ color: ACCENT, fontWeight: 700 }}>
             {formatCountdown(seconds)}
           </span>
+        </div>
+      )}
+
+      {/* Hidden PosterCanvas — auto-generate & upload */}
+      <div style={{ position: 'absolute', left: -9999, top: 0, width: 360, opacity: 0, pointerEvents: 'none' }}>
+        <PosterCanvas
+          concept="archive"
+          data={{
+            brand:      captureData.brand,
+            model:      captureData.model,
+            colorway:   captureData.colorway,
+            qrCode:     result.qrCode ?? '',
+            heroUrl:    (captureData as any).uploadedUrls?.hero ?? (captureData as any).coverImageUrl ?? '',
+            variant:    'identity',
+            soulScore:  50,
+          }}
+          onReady={handlePosterReady}
+        />
+      </div>
+
+      {/* Poster preview nếu đã generate xong */}
+      {posterUrl && (
+        <div style={{ width: '100%', maxWidth: 280, position: 'relative' }}>
+          <img
+            src={posterUrl}
+            alt="Poster định danh"
+            style={{ width: '100%', display: 'block', border: `1px solid ${ACCENT}30` }}
+          />
+          <div style={{
+            position: 'absolute', bottom: 8, right: 8,
+            fontFamily: 'monospace', fontSize: 8,
+            color: ACCENT, letterSpacing: '0.1em',
+            background: 'rgba(0,0,0,0.7)', padding: '2px 6px',
+          }}>
+            ✓ POSTER ĐÃ LƯU
+          </div>
+        </div>
+      )}
+      {posterSaving && (
+        <div style={{ fontFamily: 'monospace', fontSize: 9, color: ACCENT, letterSpacing: '0.12em', opacity: 0.6 }}>
+          Đang tạo poster...
         </div>
       )}
 
