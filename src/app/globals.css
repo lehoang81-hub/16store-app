@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────
+   16STORE — DESIGN TOKENS (Industrial Heritage)
+   ───────────────────────────────────────────────────────── */
+@theme {
+  /* COLORS */
+  --color-ink: #0a0a0a;
+  --color-ink-2: #131313;
+  --color-ink-3: #1c1c1c;
+  --color-bone: #ebe6dc;
+  --color-bone-2: #c9c2b3;
+  --color-concrete: #6b6660;
+  --color-rust: #c8531c;
+  --color-rust-glow: #ff6a2c;
+  --color-moss: #4a5a3a;
+  --color-hazard: #f0c419;
+
+  /* FONTS */
+  --font-display: 'Archivo Black', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-serif: 'Instrument Serif', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+/* Theme-level CSS vars */
+:root {
+  --line: rgba(235, 230, 220, 0.12);
+  --line-strong: rgba(235, 230, 220, 0.28);
+}
+
+/* ─────────────────────────────────────────────────────────
+   BASE
+   ───────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-body);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Industrial grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+}
+
+/* ─────────────────────────────────────────────────────────
+   ANIMATIONS
+   ───────────────────────────────────────────────────────── */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes pulse-rust {
+  0% { box-shadow: 0 0 0 0 rgba(200, 83, 28, 0.6); }
+  100% { box-shadow: 0 0 0 12px rgba(200, 83, 28, 0); }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+.animate-ticker { animation: ticker-scroll 40s linear infinite; }
+.animate-pulse-rust { animation: pulse-rust 1.5s infinite; }
+.animate-spin-slow { animation: spin-slow 30s linear infinite; }
+
+/* ─────────────────────────────────────────────────────────
+   UTILITY
+   ───────────────────────────────────────────────────────── */
+.bg-blueprint {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.bg-blueprint-sm {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.border-line { border-color: var(--line); }
+.border-line-strong { border-color: var(--line-strong); }
