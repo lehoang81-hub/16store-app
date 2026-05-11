@@ -10,11 +10,23 @@ const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '16store_iden
 
 async function uploadPosterToCloudinary(dataUrl: string, passportId: string): Promise<string | null> {
   try {
+    // Compress PNG → JPEG 75% (~890KB → ~120KB)
+    const compressed = await new Promise<string>(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        c.getContext('2d')!.drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = dataUrl;
+    });
     const form = new FormData();
-    form.append('file',          dataUrl);
+    form.append('file',          compressed);
     form.append('upload_preset', PRESET);
     form.append('folder',        `16store/posters/${passportId}`);
-   
+    form.append('public_id',     'cover');
+    form.append('overwrite',     'true');
     const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, {
       method: 'POST', body: form,
     });
@@ -408,5 +420,3 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
     </div>
   );
 }
-
-// force-rebuild-121955

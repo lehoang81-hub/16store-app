@@ -14,6 +14,7 @@ import { PassportActions } from '@/components/PassportActions';
 import { QRMiniDisplay, IDParticleBadge } from '@/components/QRBadge';
 import { IdentityPosterButton } from '@/components/IdentityPosterButton';
 import { IdentityTierBadge } from '@/components/IdentityTierBadge';
+import { PassportHero } from '@/components/PassportHero';
 import { formatVnd } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -275,92 +276,24 @@ export default async function PassportPage({ params, searchParams }: PageProps) 
           </div>
         )}
 
-        {/* Header */}
-        <div className="mb-10 pb-6 border-b border-line">
-          <div className="flex items-start justify-between gap-4 mb-3 max-md:flex-col">
-            <div className="font-mono text-[10px] text-rust tracking-[0.22em] uppercase flex items-center gap-2 before:content-[''] before:w-2 before:h-2 before:bg-rust">
-              {objectLabel} · {qrCode}
-            </div>
-            <ShareButton
-              qrCode={qrCode}
-              brand={displayBrand}
-              model={displayModel}
-              cityCount={cityCount}
-            />
-          </div>
-          <h1 className="font-display text-[clamp(36px,5vw,64px)] uppercase leading-[0.95] mb-3">
-            {displayBrand}<br />
-            <span className="text-rust">{displayModel}</span>
-          </h1>
-          {displayColorway && (
-            <div className="font-serif italic text-2xl text-bone-2">
-              &ldquo;{displayColorway}&rdquo;
-            </div>
-          )}
-          <div className="mt-4 flex items-center gap-4 flex-wrap">
-            <QRMiniDisplay qrCode={qrCode} passportId={isOwner ? passport.id : undefined} size={72} />
-            <IDParticleBadge qrCode={qrCode} />
-            {isOwner && (
-              <>
-                <IdentityPosterButton
-                  qrCode={qrCode}
-                  brand={displayBrand}
-                  model={displayModel}
-                  colorway={(passport as any).colorway ?? undefined}
-                  heroUrl={(passport as any).cover_image_url ?? undefined}
-                  ownerHandle={enrichedOwnership?.[0]?.handle ?? undefined}
-                  ownerCount={ownerCount}
-                  soulScore={journeyScore ?? undefined}
-                />
-                <a
-                  href="/identify"
-                  style={{
-                    fontFamily: 'monospace',
-                    fontSize: 9,
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.5)',
-                    background: 'transparent',
-                    border: '0.5px solid rgba(255,255,255,0.15)',
-                    borderRadius: 2,
-                    padding: '4px 10px',
-                    textDecoration: 'none',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  + Định danh mới
-                </a>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Poster — hiện nếu đã generate */}
-        {(passport as any).poster_url && (
-          <div className="mb-8">
-            <div className="font-mono text-[10px] text-bone-2 tracking-[0.2em] uppercase mb-3 flex items-center gap-2 before:content-[''] before:w-2 before:h-2 before:bg-rust">
-              Poster định danh
-            </div>
-            <div className="relative max-w-[320px]">
-              <img
-                src={(passport as any).poster_url}
-                alt={`${displayBrand} ${displayModel} poster`}
-                className="w-full border border-line"
-              />
-              {isOwner && (
-                <a
-                  href={(passport as any).poster_url}
-                  download={`16store-${qrCode}.png`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute bottom-2 right-2 font-mono text-[9px] bg-ink/80 text-rust border border-rust px-2 py-1 hover:bg-rust hover:text-ink transition-colors"
-                >
-                  ↓ Lưu poster
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Hero — new layout */}
+        <PassportHero
+          qrCode={qrCode}
+          passportId={passport.id}
+          brand={displayBrand}
+          model={displayModel}
+          colorway={displayColorway}
+          objectLabel={objectLabel}
+          journeyScore={journeyScore ?? 0}
+          isOwner={isOwner}
+          isLost={isLost}
+          posterUrl={(passport as any).poster_url ?? null}
+          coverImageUrl={(passport as any).cover_image_url ?? null}
+          identityStatus={(passport as any).identity_status ?? 'unverified'}
+          securityTier={(passport as any).security_tier ?? 'standard'}
+          ownerHandle={enrichedOwnership?.[0]?.handle ?? null}
+          ownerCount={ownerCount}
+        />
 
         {/* Stats grid */}
         <div className="grid grid-cols-4 gap-0 border border-line mb-8 max-md:grid-cols-2 max-md:border-b-0">

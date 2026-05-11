@@ -379,8 +379,7 @@ export function PosterCanvas({ data, concept, onReady }: Props) {
       ctx.font      = '12px monospace';
       ctx.fillStyle = theme.accent + 'cc';
       ctx.textAlign = 'left';
-      ctx.fillText(`16store.app/p/${data.qrCode}`, M, H - 26);
-
+      ctx.fillText(`${process.env.NEXT_PUBLIC_APP_URL?.replace('https://','')}/${data.qrCode}`, M, H - 26);
       ctx.textAlign = 'right';
       ctx.fillStyle = theme.muted;
       ctx.fillText('Quét QR để xem hộ chiếu', W - M, H - 26);
@@ -406,7 +405,7 @@ export function PosterCanvas({ data, concept, onReady }: Props) {
       <div style={{ position: 'absolute', left: -9999, top: 0 }}>
         <QRCodeSVG
           ref={(el: SVGSVGElement | null) => { qrRef.current = el; }}
-          value={`https://16store.app/p/${data.qrCode}`}
+          value={`${process.env.NEXT_PUBLIC_APP_URL}/passport/${data.qrCode}`}
           size={100}
           level="H"
           fgColor="#1a0805"
