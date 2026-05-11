@@ -301,17 +301,17 @@ export default async function PassportPage({ params, searchParams }: PageProps) 
             <QRMiniDisplay qrCode={qrCode} passportId={isOwner ? passport.id : undefined} size={72} />
             <IDParticleBadge qrCode={qrCode} />
             {isOwner && (
-              <IdentityPosterButton
-                qrCode={qrCode}
-                brand={displayBrand}
-                model={displayModel}
-                colorway={(passport as any).colorway ?? undefined}
-                heroUrl={(passport as any).cover_image_url ?? undefined}
-                ownerHandle={enrichedOwnership?.[0]?.handle ?? undefined}
-                ownerCount={ownerCount}
-                soulScore={journeyScore ?? undefined}
-              />
-              {isOwner && (
+              <>
+                <IdentityPosterButton
+                  qrCode={qrCode}
+                  brand={displayBrand}
+                  model={displayModel}
+                  colorway={(passport as any).colorway ?? undefined}
+                  heroUrl={(passport as any).cover_image_url ?? undefined}
+                  ownerHandle={enrichedOwnership?.[0]?.handle ?? undefined}
+                  ownerCount={ownerCount}
+                  soulScore={journeyScore ?? undefined}
+                />
                 <a
                   href="/identify"
                   style={{
@@ -330,7 +330,7 @@ export default async function PassportPage({ params, searchParams }: PageProps) 
                 >
                   + Định danh mới
                 </a>
-              )}
+              </>
             )}
           </div>
         </div>
