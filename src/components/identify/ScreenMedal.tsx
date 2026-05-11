@@ -5,6 +5,29 @@ import { useRouter } from 'next/navigation';
 import type { CaptureData, ScanResult } from './IdentifyFlow';
 import { PosterCanvas } from '@/components/PosterCanvas';
 
+const CLOUD  = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? 'donkfupjv';
+const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '16store_identify';
+
+async function uploadPosterToCloudinary(dataUrl: string, passportId: string): Promise<string | null> {
+  try {
+    const form = new FormData();
+    form.append('file',          dataUrl);
+    form.append('upload_preset', PRESET);
+    form.append('folder',        `16store/posters/${passportId}`);
+    form.append('public_id',     'cover');
+    form.append('overwrite',     'true');
+    const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, {
+      method: 'POST', body: form,
+    });
+    if (!res.ok) { console.error('[poster upload]', await res.text()); return null; }
+    const data = await res.json();
+    return (data.secure_url as string).replace('/upload/', '/upload/f_auto,q_auto,w_1080/');
+  } catch (err) {
+    console.error('[poster upload]', err);
+    return null;
+  }
+}
+
 
 interface Props {
   result: ScanResult;
@@ -92,21 +115,21 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
   };
 
-  // Auto-upload poster sau khi PosterCanvas render xong
   const handlePosterReady = async (dataUrl: string) => {
-  console.log('[ScreenMedal] posterReady, passportId:', result.passportId);
-  if (!result.passportId || posterSaving) return;
+    console.log('[ScreenMedal] posterReady, passportId:', result.passportId);
+    if (!result.passportId || posterSaving) return;
     setPosterSaving(true);
     try {
-      const res = await fetch('/api/poster/generate', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ passportId: result.passportId, dataUrl }),
+      const cloudUrl = await uploadPosterToCloudinary(dataUrl, result.passportId);
+      if (!cloudUrl) return;
+      const res  = await fetch('/api/poster/save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passportId: result.passportId, posterUrl: cloudUrl }),
       });
       const data = await res.json();
-      if (data.posterUrl) setPosterUrl(data.posterUrl);
+      setPosterUrl(data.posterUrl ?? cloudUrl);
     } catch (err) {
-      console.error('[ScreenMedal] poster upload failed:', err);
+      console.error('[ScreenMedal] poster failed:', err);
     } finally {
       setPosterSaving(false);
     }
@@ -291,37 +314,28 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
         <PosterCanvas
           concept="archive"
           data={{
-            brand:      captureData.brand,
-            model:      captureData.model,
-            colorway:   captureData.colorway,
-            qrCode:     result.qrCode ?? '',
-            heroUrl:    (captureData as any).uploadedUrls?.hero ?? (captureData as any).coverImageUrl ?? '',
-            variant:    'identity',
-            soulScore:  50,
+            brand:     captureData.brand,
+            model:     captureData.model,
+            colorway:  captureData.colorway,
+            qrCode:    result.qrCode ?? '',
+            heroUrl:   (captureData as any).uploadedUrls?.hero ?? '',
+            variant:   'identity',
+            soulScore: 50,
           }}
           onReady={handlePosterReady}
         />
       </div>
 
-      {/* Poster preview nếu đã generate xong */}
+      {/* Poster preview */}
       {posterUrl && (
         <div style={{ width: '100%', maxWidth: 280, position: 'relative' }}>
-          <img
-            src={posterUrl}
-            alt="Poster định danh"
-            style={{ width: '100%', display: 'block', border: `1px solid ${ACCENT}30` }}
-          />
-          <div style={{
-            position: 'absolute', bottom: 8, right: 8,
-            fontFamily: 'monospace', fontSize: 8,
-            color: ACCENT, letterSpacing: '0.1em',
-            background: 'rgba(0,0,0,0.7)', padding: '2px 6px',
-          }}>
+          <img src={posterUrl} alt="Poster" style={{ width: '100%', display: 'block', border: `1px solid ${ACCENT}30` }} />
+          <div style={{ position: 'absolute', bottom: 8, right: 8, fontFamily: 'monospace', fontSize: 8, color: ACCENT, background: 'rgba(0,0,0,0.7)', padding: '2px 6px' }}>
             ✓ POSTER ĐÃ LƯU
           </div>
         </div>
       )}
-      {posterSaving && (
+      {posterSaving && !posterUrl && (
         <div style={{ fontFamily: 'monospace', fontSize: 9, color: ACCENT, letterSpacing: '0.12em', opacity: 0.6 }}>
           Đang tạo poster...
         </div>
