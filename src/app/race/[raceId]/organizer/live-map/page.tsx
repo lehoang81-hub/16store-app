@@ -10,8 +10,8 @@ import type { LiveMapData, EventStaff, RaceWaypoint, CongestionAlert, Participan
 
 const SB_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SB_KEY  = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const MBOX    = 'pk.eyJ1IjoibGVob2FuZzgxIiwiYSI6ImNtbzhkZGY0cDAwYW8ycXBsdjZreDBjNnQifQ.waymWg6n9qRz284bC4gOaQ';
-const GEMINI  = 'AIzaSyB6YqMvnqH00H2-1ukvQB0pNB9cxDSg7Jc';
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
+const GEMINI = process.env.GEMINI_API_KEY!;
 const H = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Accept-Profile': 'hlrace' };
 
 const CLUSTER_COLOR: Record<string, string> = {

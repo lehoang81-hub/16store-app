@@ -173,7 +173,7 @@ export default function ZoneOpsPage({ params }: PageProps) {
 }
 
 // ── MAP PANEL ─────────────────────────────────────────────────
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibGVob2FuZzgxIiwiYSI6ImNtbzhkZGY0cDAwYW8ycXBsdjZreDBjNnQifQ.waymWg6n9qRz284bC4gOaQ';
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 const MAP_CENTER: [number, number] = [105.9080, 20.5350];
 const CLUSTER_COLOR: Record<string, string> = {
   safety: '#ef4444', media: '#3b82f6', protocol: '#f59e0b', logistics: '#10b981',
