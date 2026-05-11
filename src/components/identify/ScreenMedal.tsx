@@ -409,3 +409,5 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
     </div>
   );
 }
+
+// force-rebuild-121955
