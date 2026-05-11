@@ -3,7 +3,9 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
-const BASE_URL = 'https://16store.app/p';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL 
+  ? `${process.env.NEXT_PUBLIC_APP_URL}/passport`
+  : 'https://16store-app.vercel.app/passport';
 
 // ── QR Display + auto-upload ──────────────────────────────────
 interface QRDisplayProps {
