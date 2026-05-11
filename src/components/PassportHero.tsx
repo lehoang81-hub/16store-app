@@ -27,10 +27,10 @@ function ShareMenu({ qrCode, brand, model, posterUrl }: {
 }) {
   const [open,   setOpen]   = useState(false);
   const [copied, setCopied] = useState(false);
-  const appUrl = typeof window !== 'undefined'
-    ? window.location.origin
-    : 'https://16store-app.vercel.app';
-  const link = `${appUrl}/passport/${qrCode}`;
+
+  const link = typeof window !== 'undefined'
+    ? `${window.location.origin}/passport/${qrCode}`
+    : `https://16store-app.vercel.app/passport/${qrCode}`;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(link).catch(() => {});
@@ -40,8 +40,8 @@ function ShareMenu({ qrCode, brand, model, posterUrl }: {
 
   const handleSave = () => {
     if (!posterUrl) return;
-    const a = document.createElement('a');
-    a.href = posterUrl;
+    const a  = document.createElement('a');
+    a.href   = posterUrl;
     a.download = `16store-${qrCode}.jpg`;
     a.target = '_blank';
     a.click();
@@ -92,24 +92,20 @@ function ShareMenu({ qrCode, brand, model, posterUrl }: {
           <div style={{
             position:  'absolute',
             top:       '110%',
-            left:       0,
+            right:      0,
             zIndex:     50,
             background:'#0d0d14',
             border:    '0.5px solid rgba(200,83,28,0.3)',
-            minWidth:   180,
+            minWidth:   190,
             boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
           }}>
             {posterUrl && (
-              <button onClick={handleSave} style={menuItem}>
-                ↓ Lưu ảnh poster
-              </button>
+              <button onClick={handleSave} style={menuItem}>↓ Lưu ảnh poster</button>
             )}
             <button onClick={handleCopy} style={menuItem}>
               {copied ? '✓ Đã copy!' : '⎘ Copy link passport'}
             </button>
-            <button onClick={handleShare} style={menuItem}>
-              ↗ Chia sẻ lên mạng xã hội
-            </button>
+            <button onClick={handleShare} style={menuItem}>↗ Chia sẻ mạng xã hội</button>
           </div>
         </>
       )}
@@ -150,55 +146,46 @@ function PosterLightbox({ url, onClose }: { url: string; onClose: () => void }) 
       <div onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: 480, width: '100%' }}>
         <img src={url} alt="Poster" style={{ width: '100%', display: 'block' }} />
         <button onClick={onClose} style={{
-          position: 'absolute', top: -40, right: 0,
+          position: 'absolute', top: -44, right: 0,
           background: 'none', border: 'none',
-          color: 'rgba(255,255,255,0.7)', fontSize: 28,
-          cursor: 'pointer',
+          color: 'rgba(255,255,255,0.7)', fontSize: 30,
+          cursor: 'pointer', lineHeight: 1,
         }}>✕</button>
       </div>
     </div>
   );
 }
 
-// ── Soul Score with sweep ─────────────────────────────────────
+// ── Soul Score ────────────────────────────────────────────────
 function SoulScore({ score }: { score: number }) {
   const [swept, setSwept] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setSwept(true), 600); return () => clearTimeout(t); }, []);
-
+  useEffect(() => { const t = setTimeout(() => setSwept(true), 700); return () => clearTimeout(t); }, []);
   const color = score >= 500 ? '#d4af37' : score >= 200 ? '#e8a040' : '#C8531C';
 
   return (
     <div>
-      <div style={{ fontFamily: 'monospace', fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 4 }}>
+      <div style={{ fontFamily: 'monospace', fontSize: 9, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 3 }}>
         Soul Score
       </div>
       <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block' }}>
         <span style={{
-          fontFamily:  'monospace',
-          fontSize:     44,
-          fontWeight:   900,
-          color,
-          lineHeight:   1,
-          textShadow:  `0 0 20px ${color}50`,
+          fontFamily: 'monospace', fontSize: 48, fontWeight: 900,
+          color, lineHeight: 1, textShadow: `0 0 24px ${color}50`,
         }}>
           {score}
         </span>
         {swept && (
           <span style={{
-            position:   'absolute',
-            top: 0, bottom: 0,
-            left:       '-100%',
-            width:      '50%',
-            background: `linear-gradient(90deg, transparent, ${color}50, transparent)`,
-            animation:  'sweep 1s ease-out forwards',
-            pointerEvents: 'none',
+            position: 'absolute', top: 0, bottom: 0, left: '-100%', width: '50%',
+            background: `linear-gradient(90deg, transparent, ${color}60, transparent)`,
+            animation: 'sweep 1s ease-out forwards', pointerEvents: 'none',
           }} />
         )}
       </div>
-      <div style={{ fontFamily: 'monospace', fontSize: 9, color: color + '80', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
+      <div style={{ fontFamily: 'monospace', fontSize: 9, color: color + '70', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 2 }}>
         pts · THE FIRST
       </div>
-      <style>{`@keyframes sweep { 0%{left:-100%} 100%{left:160%} }`}</style>
+      <style>{`@keyframes sweep{0%{left:-100%}100%{left:160%}}`}</style>
     </div>
   );
 }
@@ -206,52 +193,35 @@ function SoulScore({ score }: { score: number }) {
 // ── Star rain button ──────────────────────────────────────────
 function StarRainButton() {
   const [stars, setStars] = useState<{ id: number; x: number; d: number; s: number }[]>([]);
-
   return (
     <a
       href="/identify"
       onMouseEnter={() => setStars(
-        Array.from({ length: 10 }, (_, i) => ({ id: Date.now() + i, x: Math.random() * 100, d: Math.random() * 0.5, s: 2 + Math.random() * 3 }))
+        Array.from({ length: 10 }, (_, i) => ({
+          id: Date.now() + i, x: Math.random() * 100,
+          d: Math.random() * 0.4, s: 2 + Math.random() * 3,
+        }))
       )}
       style={{
-        display:        'inline-flex',
-        alignItems:     'center',
-        justifyContent: 'center',
-        gap:             8,
-        padding:        '10px 24px',
-        fontFamily:     'monospace',
-        fontSize:        10,
-        letterSpacing:  '0.16em',
-        textTransform:  'uppercase',
-        color:          'rgba(255,255,255,0.45)',
-        background:     'transparent',
-        border:         '0.5px solid rgba(255,255,255,0.1)',
-        textDecoration: 'none',
-        position:       'relative',
-        overflow:       'hidden',
-        transition:     'border-color 0.3s, color 0.3s',
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.45)';
-        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)';
+        display: 'inline-flex', alignItems: 'center', gap: 8,
+        padding: '10px 24px', fontFamily: 'monospace', fontSize: 10,
+        letterSpacing: '0.16em', textTransform: 'uppercase',
+        color: 'rgba(255,255,255,0.4)', background: 'transparent',
+        border: '0.5px solid rgba(255,255,255,0.1)', textDecoration: 'none',
+        position: 'relative', overflow: 'hidden',
       }}
     >
       {stars.map(s => (
         <span key={s.id} style={{
-          position:     'absolute',
-          left:         `${s.x}%`,
-          top:          '-8px',
-          width:         s.s,
-          height:        s.s,
-          borderRadius: '50%',
-          background:   '#C8531C',
-          opacity:       0,
-          animation:    `starfall 0.7s ease-in ${s.d}s 1 forwards`,
-          pointerEvents:'none',
+          position: 'absolute', left: `${s.x}%`, top: '-8px',
+          width: s.s, height: s.s, borderRadius: '50%',
+          background: '#C8531C', opacity: 0,
+          animation: `starfall 0.7s ease-in ${s.d}s 1 forwards`,
+          pointerEvents: 'none',
         }} />
       ))}
       ✦ Định danh vật phẩm mới
-      <style>{`@keyframes starfall { 0%{top:-8px;opacity:0} 20%{opacity:0.8} 100%{top:110%;opacity:0} }`}</style>
+      <style>{`@keyframes starfall{0%{top:-8px;opacity:0}20%{opacity:0.8}100%{top:110%;opacity:0}}`}</style>
     </a>
   );
 }
@@ -261,15 +231,14 @@ export function PassportHero({
   qrCode, passportId, brand, model, colorway, objectLabel,
   journeyScore, isOwner, isLost, posterUrl, identityStatus, securityTier,
 }: Props) {
-  const [lightbox, setLightbox] = useState(false);
-  const [posterErr, setPosterErr] = useState(false);
+  const [lightbox,   setLightbox]   = useState(false);
+  const [posterErr,  setPosterErr]  = useState(false);
 
   const tierColor = securityTier === 'heritage' ? '#b8eaff' : securityTier === 'elite' ? '#d4af37' : '#C8531C';
   const tierLabel = securityTier === 'heritage' ? '⬡ HERITAGE' : securityTier === 'elite' ? '◆ ELITE' : '◎ STANDARD';
   const statusColor = identityStatus === 'certified' ? '#d4af37' : identityStatus === 'ai_verified' ? '#e8a040' : 'rgba(255,255,255,0.25)';
   const statusLabel = identityStatus === 'certified' ? '✦ CERTIFIED' : identityStatus === 'ai_verified' ? '🤖 AI VERIFIED' : '🔓 GHI NHẬN';
-
-  const showPoster = posterUrl && !posterErr;
+  const showPoster = !!posterUrl && !posterErr;
 
   return (
     <>
@@ -277,95 +246,123 @@ export function PassportHero({
 
       <div style={{ marginBottom: 40, paddingBottom: 28, borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}>
 
-        {/* Object label */}
-        <div style={{
-          fontFamily: 'monospace', fontSize: 9, color: '#C8531C',
-          letterSpacing: '0.22em', textTransform: 'uppercase',
-          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
-        }}>
-          <span style={{ width: 8, height: 8, background: '#C8531C', display: 'inline-block', flexShrink: 0 }} />
-          {objectLabel}
-          {isLost && (
-            <span style={{ background: 'rgba(239,68,68,0.15)', border: '0.5px solid rgba(239,68,68,0.5)', color: '#ef4444', padding: '1px 8px', fontSize: 8, letterSpacing: '0.15em' }}>
-              BỊ MẤT
-            </span>
-          )}
-        </div>
+        {/* Two column layout */}
+        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
 
-        {/* Brand / Model */}
-        <h1 style={{
-          fontFamily: '"Bebas Neue","Arial Black",sans-serif',
-          fontSize: 'clamp(36px,5vw,64px)',
-          lineHeight: 0.95, textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.02em',
-        }}>
-          {brand}<br />
-          <span style={{ color: '#C8531C' }}>{model}</span>
-        </h1>
+          {/* LEFT — main content */}
+          <div style={{ flex: 1, minWidth: 0 }}>
 
-        {colorway && (
-          <div style={{ fontFamily: 'Georgia,serif', fontStyle: 'italic', fontSize: 22, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
-            &ldquo;{colorway}&rdquo;
-          </div>
-        )}
-
-        {/* Row: QR + Soul Score + Badges */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
-          {/* QR */}
-          <QRMiniDisplay qrCode={qrCode} passportId={isOwner ? passportId : undefined} size={96} />
-
-          {/* Soul Score */}
-          <SoulScore score={journeyScore} />
-
-          {/* Badges — pushed right */}
-          <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
-            <span style={{
-              fontFamily: 'monospace', fontSize: 9, color: tierColor,
-              border: `0.5px solid ${tierColor}40`, padding: '3px 10px',
-              letterSpacing: '0.12em', textTransform: 'uppercase', background: `${tierColor}10`,
-              whiteSpace: 'nowrap',
+            {/* Object label */}
+            <div style={{
+              fontFamily: 'monospace', fontSize: 9, color: '#C8531C',
+              letterSpacing: '0.22em', textTransform: 'uppercase',
+              display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
             }}>
-              {tierLabel}
-            </span>
-            <span style={{
-              fontFamily: 'monospace', fontSize: 9, color: statusColor,
-              border: '0.5px solid rgba(255,255,255,0.1)', padding: '3px 10px',
-              letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap',
-            }}>
-              {statusLabel}
-            </span>
-          </div>
-        </div>
-
-        {/* Row: Poster thumbnail + Share */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: isOwner ? 16 : 0, flexWrap: 'wrap' }}>
-          {showPoster && (
-            <div
-              onClick={() => setLightbox(true)}
-              title="Click để phóng to"
-              style={{ width: 64, flexShrink: 0, cursor: 'pointer', position: 'relative' }}
-            >
-              <img
-                src={posterUrl}
-                alt="Poster"
-                onError={() => setPosterErr(true)}
-                style={{ width: '100%', display: 'block', border: '0.5px solid rgba(200,83,28,0.3)' }}
-              />
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                textAlign: 'center', fontFamily: 'monospace', fontSize: 6,
-                color: '#C8531C', background: 'rgba(0,0,0,0.65)', padding: '2px 0',
-                letterSpacing: '0.08em',
-              }}>
-                POSTER ↗
-              </div>
+              <span style={{ width: 8, height: 8, background: '#C8531C', display: 'inline-block', flexShrink: 0 }} />
+              {objectLabel}
+              {isLost && (
+                <span style={{ background: 'rgba(239,68,68,0.15)', border: '0.5px solid rgba(239,68,68,0.5)', color: '#ef4444', padding: '1px 8px', fontSize: 8, letterSpacing: '0.15em' }}>
+                  BỊ MẤT
+                </span>
+              )}
             </div>
-          )}
 
-          <ShareMenu qrCode={qrCode} brand={brand} model={model} posterUrl={showPoster ? posterUrl : null} />
+            {/* Brand / Model */}
+            <h1 style={{
+              fontFamily: '"Bebas Neue","Arial Black",sans-serif',
+              fontSize: 'clamp(32px,4.5vw,60px)',
+              lineHeight: 0.95, textTransform: 'uppercase',
+              marginBottom: 8, letterSpacing: '0.02em',
+            }}>
+              {brand}<br />
+              <span style={{ color: '#C8531C' }}>{model}</span>
+            </h1>
+
+            {colorway && (
+              <div style={{ fontFamily: 'Georgia,serif', fontStyle: 'italic', fontSize: 20, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
+                &ldquo;{colorway}&rdquo;
+              </div>
+            )}
+
+            {/* QR + Soul Score */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
+              <QRMiniDisplay qrCode={qrCode} passportId={isOwner ? passportId : undefined} size={90} />
+              <SoulScore score={journeyScore} />
+            </div>
+
+            {/* Định danh mới */}
+            {isOwner && (
+              <div style={{ marginBottom: 16 }}>
+                <StarRainButton />
+              </div>
+            )}
+
+            {/* Badges */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{
+                fontFamily: 'monospace', fontSize: 9, color: statusColor,
+                border: '0.5px solid rgba(255,255,255,0.12)', padding: '3px 10px',
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+              }}>
+                {statusLabel}
+              </span>
+              <span style={{
+                fontFamily: 'monospace', fontSize: 9, color: tierColor,
+                border: `0.5px solid ${tierColor}40`, padding: '3px 10px',
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                background: `${tierColor}10`,
+              }}>
+                {tierLabel}
+              </span>
+            </div>
+          </div>
+
+          {/* RIGHT — poster + share */}
+          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+
+            {/* Poster 150px */}
+            {showPoster ? (
+              <div
+                onClick={() => setLightbox(true)}
+                title="Click để phóng to"
+                style={{ width: 150, cursor: 'pointer', position: 'relative' }}
+              >
+                <img
+                  src={posterUrl!}
+                  alt="Poster"
+                  onError={() => setPosterErr(true)}
+                  style={{
+                    width: '100%', display: 'block',
+                    border: '0.5px solid rgba(200,83,28,0.35)',
+                  }}
+                />
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  textAlign: 'center', fontFamily: 'monospace', fontSize: 7,
+                  color: '#C8531C', background: 'rgba(0,0,0,0.7)', padding: '3px 0',
+                  letterSpacing: '0.1em',
+                }}>
+                  POSTER ↗
+                </div>
+              </div>
+            ) : (
+              /* Placeholder nếu chưa có poster */
+              <div style={{
+                width: 150, aspectRatio: '4/5',
+                border: '0.5px dashed rgba(200,83,28,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(200,83,28,0.04)',
+              }}>
+                <span style={{ fontFamily: 'monospace', fontSize: 8, color: 'rgba(200,83,28,0.3)', letterSpacing: '0.1em', textAlign: 'center', padding: 8 }}>
+                  Poster<br />chưa có
+                </span>
+              </div>
+            )}
+
+            {/* Share button */}
+            <ShareMenu qrCode={qrCode} brand={brand} model={model} posterUrl={showPoster ? posterUrl : null} />
+          </div>
         </div>
-
-        {/* Định danh mới — owner only */}
-        {isOwner && <StarRainButton />}
       </div>
     </>
   );
