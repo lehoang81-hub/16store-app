@@ -391,6 +391,7 @@ export function PosterCanvas({ data, concept, onReady }: Props) {
       setDataUrl(url);
       setReady(true);
       setStatus('Xong!');
+      console.log('[PosterCanvas] onReady called, url length:', url.length);    
       onReady?.(url);
     }, 600);
 
