@@ -124,6 +124,7 @@ export default async function PassportPage({ params, searchParams }: PageProps) 
       security_tier,
       asset_metadata,
       cover_image_url,
+      poster_url,
       created_at
     `)
     .eq('qr_code', qrCode)
@@ -310,9 +311,56 @@ export default async function PassportPage({ params, searchParams }: PageProps) 
                 ownerCount={ownerCount}
                 soulScore={journeyScore ?? undefined}
               />
+              {isOwner && (
+                <a
+                  href="/identify"
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 9,
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(255,255,255,0.5)',
+                    background: 'transparent',
+                    border: '0.5px solid rgba(255,255,255,0.15)',
+                    borderRadius: 2,
+                    padding: '4px 10px',
+                    textDecoration: 'none',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  + Định danh mới
+                </a>
+              )}
             )}
           </div>
         </div>
+
+        {/* Poster — hiện nếu đã generate */}
+        {(passport as any).poster_url && (
+          <div className="mb-8">
+            <div className="font-mono text-[10px] text-bone-2 tracking-[0.2em] uppercase mb-3 flex items-center gap-2 before:content-[''] before:w-2 before:h-2 before:bg-rust">
+              Poster định danh
+            </div>
+            <div className="relative max-w-[320px]">
+              <img
+                src={(passport as any).poster_url}
+                alt={`${displayBrand} ${displayModel} poster`}
+                className="w-full border border-line"
+              />
+              {isOwner && (
+                <a
+                  href={(passport as any).poster_url}
+                  download={`16store-${qrCode}.png`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-2 right-2 font-mono text-[9px] bg-ink/80 text-rust border border-rust px-2 py-1 hover:bg-rust hover:text-ink transition-colors"
+                >
+                  ↓ Lưu poster
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Stats grid */}
         <div className="grid grid-cols-4 gap-0 border border-line mb-8 max-md:grid-cols-2 max-md:border-b-0">
