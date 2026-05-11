@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { CaptureData, ScanResult } from './IdentifyFlow';
 import { PosterCanvas } from '@/components/PosterCanvas';
 
+
 interface Props {
   result: ScanResult;
   captureData: CaptureData;
@@ -93,7 +94,8 @@ export function ScreenMedal({ result, captureData, userHandle, onReset }: Props)
 
   // Auto-upload poster sau khi PosterCanvas render xong
   const handlePosterReady = async (dataUrl: string) => {
-    if (!result.passportId || posterSaving) return;
+  console.log('[ScreenMedal] posterReady, passportId:', result.passportId);
+  if (!result.passportId || posterSaving) return;
     setPosterSaving(true);
     try {
       const res = await fetch('/api/poster/generate', {
