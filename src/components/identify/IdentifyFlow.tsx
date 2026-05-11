@@ -20,6 +20,8 @@ export interface CaptureData {
   model: string;
   colorway: string;
   objectType: string;
+  uploadedUrls?: Record<string, string>; // hero, extra, etc.
+  coverImageUrl?: string;                // primary image URL
 }
 
 export interface ScanResult {
