@@ -15,7 +15,7 @@ async function uploadPosterToCloudinary(dataUrl: string, passportId: string): Pr
     form.append('upload_preset', PRESET);
     form.append('folder',        `16store/posters/${passportId}`);
     form.append('public_id',     'cover');
-    form.append('overwrite',     'true');
+   
     const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, {
       method: 'POST', body: form,
     });
