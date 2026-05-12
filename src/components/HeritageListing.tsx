@@ -50,7 +50,9 @@ export function HeritageListing({ assetId, assetData, userHlr, isFirstAsset, onC
   const [hubCode,         setHubCode]         = useState('hcm-01');
   const [tier,            setTier]            = useState<'standard' | 'elite'>('standard');
   const [selectedConcept, setSelectedConcept] = useState<ConceptType>('archive');
-  const [posterDataUrl,   setPosterDataUrl]   = useState<string | null>(null);
+  const [posterDataUrl,   setPosterDataUrl]   = useState<string | null>(
+    (assetData as any).posterUrl ?? null  // Dùng poster đã lưu nếu có
+  );
   const [submitting,      setSubmitting]      = useState(false);
   const [error,           setError]           = useState<string | null>(null);
 
@@ -362,34 +364,51 @@ export function HeritageListing({ assetId, assetData, userHlr, isFirstAsset, onC
         </div>
       )}
 
-      {/* Poster canvas */}
-      <PosterCanvas
-        concept={selectedConcept}
-        data={{
-          brand:       assetData.brand,
-          model:       assetData.model,
-          colorway:    assetData.colorway,
-          qrCode:      assetData.qrCode,
-          price:       priceNum,
-          heroUrl:     assetData.existingImageUrl ?? (assetData as any).cover_image_url ?? '',
-          description: description || undefined,
-          ownerCount:  assetData.owners,
-        }}
-        onReady={setPosterDataUrl}
-      />
+      {/* Poster — dùng ảnh đã lưu hoặc render canvas */}
+      {(assetData as any).posterUrl ? (
+        <div style={{ position: 'relative' }}>
+          <img
+            src={(assetData as any).posterUrl}
+            alt="Poster định danh"
+            style={{ width: '100%', display: 'block', border: '1px solid rgba(200,83,28,0.2)' }}
+          />
+          <div style={{
+            position: 'absolute', bottom: 8, right: 8,
+            fontFamily: 'monospace', fontSize: 9,
+            color: '#C8531C', background: 'rgba(0,0,0,0.7)', padding: '2px 8px',
+          }}>
+            ✓ Poster đã lưu
+          </div>
+        </div>
+      ) : (
+        <PosterCanvas
+          concept={selectedConcept}
+          data={{
+            brand:       assetData.brand,
+            model:       assetData.model,
+            colorway:    assetData.colorway,
+            qrCode:      assetData.qrCode,
+            price:       priceNum,
+            heroUrl:     assetData.existingImageUrl ?? (assetData as any).cover_image_url ?? '',
+            description: description || undefined,
+            ownerCount:  assetData.owners,
+          }}
+          onReady={setPosterDataUrl}
+        />
+      )}
 
       {/* Listing info */}
       <div className="border border-line p-3 space-y-1">
-        <div className="font-mono text-[9px] text-concrete tracking-[0.12em] uppercase mb-2">
+        <div className="font-mono text-[11px] text-concrete tracking-[0.12em] uppercase mb-2">
           Thông tin listing
         </div>
-        <div className="flex justify-between font-mono text-[11px]">
+        <div className="flex justify-between font-mono text-[13px]">
           <span className="text-concrete">Giá</span>
           <span className="text-bone font-bold">
             {new Intl.NumberFormat('vi-VN').format(priceNum)} VNĐ
           </span>
         </div>
-        <div className="flex justify-between font-mono text-[11px]">
+        <div className="flex justify-between font-mono text-[13px]">
           <span className="text-concrete">Hub</span>
           <span className="text-bone">{HUBS.find(h => h.code === hubCode)?.name}</span>
         </div>

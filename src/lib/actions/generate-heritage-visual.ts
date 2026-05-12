@@ -339,6 +339,7 @@ async function fetchAssetData(
     createdAt: asset.created_at,
     // ✅ Fix: map cover_image_url → existingImageUrl cho PosterCanvas
     existingImageUrl: asset.cover_image_url ?? (asset.image_urls as string[])?.[0] ?? undefined,
+    posterUrl: asset.poster_url ?? undefined,
   };
 }
 

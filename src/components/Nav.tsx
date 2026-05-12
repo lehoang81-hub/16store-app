@@ -65,10 +65,10 @@ export async function Nav() {
                 @{user.handle}
               </Link>
               <Link
-                href="/submit"
+                href="/identify"
                 className="bg-rust text-ink px-5 py-[11px] font-mono text-[11px] font-bold tracking-[0.16em] uppercase inline-flex items-center gap-2 hover:bg-bone transition-colors group"
               >
-                Ký gửi pair
+                Định danh mới
                 <span className="group-hover:translate-x-[3px] transition-transform">→</span>
               </Link>
             </>

@@ -82,7 +82,7 @@ export default async function DashboardPage({
           <div className="border border-rust bg-rust/5 p-5 mb-8 flex items-start gap-4">
             <div className="font-display text-3xl text-rust">✓</div>
             <div>
-              <div className="font-display text-base uppercase mb-1">Đã gửi pair {params.submitted}</div>
+              <div className="font-display text-base uppercase mb-1"> ✓ Đã đăng bán · LOT{params.submitted}</div>
               <div className="text-sm text-bone-2 leading-[1.5]">
                 Vật phẩm đang chờ verify. Mang đến hub trong vòng 7 ngày.
               </div>
