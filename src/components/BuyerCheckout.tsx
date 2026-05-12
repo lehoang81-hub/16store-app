@@ -38,11 +38,10 @@ export function BuyerCheckout({ post, seller, hub, buyer }: Props) {
       window.location.href = `/login?next=/listings/${post.lotId}`;
       return;
     }
-    // TEST MODE - restore after testing
-    // if (buyer.id === post.sellerId) {
-    //   setError('Bạn không thể mua vật phẩm của chính mình');
-    //   return;
-    // }
+    if (buyer.id === post.sellerId) {
+      setError('Bạn không thể mua vật phẩm của chính mình');
+      return;
+    }
     setShowWarn(true);
   };
 
